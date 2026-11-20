@@ -305,12 +305,13 @@
             <div class="space-y-1.5">
               <label for="selectAiModel" class="text-[11px] font-medium text-slate-400">Modèle Gemini</label>
               <select id="selectAiModel" class="w-full bg-studio-900 border border-studio-700 focus:border-violet-500 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none font-mono">
-                <option value="gemini-2.5-flash-image" selected>gemini-2.5-flash-image</option>
+                <option value="gemini-3.8-flash" selected>gemini-3.8-flash (Recommandé — US)</option>
+                <option value="gemini-2.5-flash-image">gemini-2.5-flash-image</option>
                 <option value="gemini-2.0-flash-exp-image-generation">gemini-2.0-flash-exp-image-generation</option>
                 <option value="gemini-2.5-flash">gemini-2.5-flash</option>
                 <option value="custom">Personnalisé…</option>
               </select>
-              <input type="text" id="inpCustomModel" class="hidden w-full bg-studio-900 border border-violet-500/60 focus:border-violet-400 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono placeholder-slate-500 outline-none" placeholder="Ex : gemini-2.5-flash-image" />
+              <input type="text" id="inpCustomModel" class="hidden w-full bg-studio-900 border border-violet-500/60 focus:border-violet-400 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono placeholder-slate-500 outline-none" placeholder="Ex : gemini-3.8-flash" />
             </div>
 
             <!-- Choix 1-Passe vs 2-Passes -->
@@ -745,7 +746,7 @@
       // Mode actif : 'ai' | 'local'
       engineMode: 'ai',
       aiSubMode: '1pass',          // '1pass' | '2pass'
-      aiModel: 'gemini-2.5-flash-image',
+      aiModel: 'gemini-3.8-flash',
       aiBusy: false,
 
       // Résultats bruts retournés par l'IA (ImageData aux dimensions workW x workH)
@@ -1026,9 +1027,9 @@
     function getActiveModelName() {
       if (els.selectAiModel.value === 'custom') {
         const custom = els.inpCustomModel.value.trim();
-        return custom || 'gemini-2.5-flash-image';
+        return custom || 'gemini-3.8-flash';
       }
-      return els.selectAiModel.value || 'gemini-2.5-flash-image';
+      return els.selectAiModel.value || 'gemini-3.8-flash';
     }
 
     let processTimer = null;
@@ -1382,18 +1383,22 @@
           setLoading(true, '✨ IA Gemini : Séparation 3 couleurs (Découpe / Bois / Gravure)…');
 
           const prompt1Pass = `You are a precision technical laser-cutting CAD illustrator.
-Redraw this exact image as a completely flat, top-down 2D laser-cutting & engraving separation map, keeping the EXACT same layout, framing, proportions, silhouette, cutout holes, and EVERY fine internal engraving detail (fur, feathers, scales, waves, eyes, petals, swirls).
+Redraw this exact image as a completely flat, orthogonal top-down 2D laser-cutting & engraving separation map (zero perspective), keeping EVERY fine internal engraving detail (fur, feathers, scales, waves, eyes, petals, swirls).
 
 STRICT 3-COLOR RULE (USE ONLY THESE 3 FLAT SOLID COLORS — ZERO GRADIENTS, ZERO 3D SHADING, ZERO DROP SHADOWS, ZERO WOOD GRAIN, ZERO TEXTURE):
 1. PURE BLUE (#0000FF) = All empty background, open space, and inner cutout holes (ajourages to be cut out completely).
 2. PURE WHITE (#FFFFFF) = All intact solid wood / material surface.
 3. PURE BLACK (#000000) = All fine internal engraving lines, dark etched details, fur strokes, feather lines, scales, waves, eyes, and decorative lineart drawn on top of the white material.
 
-CRITICAL RULES:
+STRICT GEOMETRY, INVISIBLE GRID ALIGNMENT & IDENTICAL DIMENSIONS:
+- Straighten every piece to exactly 0° tilt: all vertical and horizontal edges must be strictly parallel to the image borders.
+- If there are multiple pieces/elements, arrange them on a perfectly regular invisible grid (do NOT draw grid lines), with strictly identical outer dimensions (exact same height, exact same width, exact same border thickness, and same eyelet size/position if present), perfectly aligned top and bottom edges, and equal blue spacing between pieces.
+
+CRITICAL DETAIL & CUTOUT RULES:
 - Remove all 3D perspective shadows, wood grain texture, lighting gradients, and extraneous non-wood props (such as strings, tassels/pompons, table surfaces, or hands) — replace them with PURE BLUE (#0000FF).
+- Ensure all white solid wood parts are properly connected (no floating disconnected pieces in the blue).
 - Keep every single fine internal engraving detail crisp and sharp in PURE BLACK (#000000) on PURE WHITE (#FFFFFF).
-- Do NOT fill large solid wood areas with black; black is ONLY for etched/engraved lines and details.
-- Maintain exact pixel alignment and aspect ratio with the input image.${extraInstruction}`;
+- Do NOT fill large solid wood areas with black; black is ONLY for etched/engraved lines and details.${extraInstruction}`;
 
           const outUrl = await callGeminiImageEdit(prompt1Pass, base64Input, 'image/jpeg');
           const imgData = await dataUrlToAlignedImageData(outUrl);
