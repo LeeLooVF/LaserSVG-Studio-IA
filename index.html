@@ -241,8 +241,17 @@
             </button>
           </div>
 
-          <!-- ===== PANNEAU MODE IA (GEMINI) ===== -->
+          <!-- ===== PANNEAU MODE IA (PROXY /api/gemini) ===== -->
           <div id="panelModeAI" class="space-y-3">
+            <!-- Badge rassurant Proxy Serveur -->
+            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-700/40 text-[11px] text-emerald-300">
+              <span class="flex items-center gap-1.5 font-medium">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Proxy serveur /api/gemini actif
+              </span>
+              <span class="text-[10px] font-mono text-emerald-400/80">2.5-flash</span>
+            </div>
+
             <!-- Choix 1-Passe vs 2-Passes -->
             <div class="space-y-1.5">
               <label class="text-[11px] font-medium text-slate-400">Architecture de séparation IA</label>
@@ -268,7 +277,7 @@
             <!-- Instructions IA personnalisées -->
             <div class="space-y-1">
               <label for="inpAiPrompt" class="text-[11px] text-slate-400">Instructions IA (optionnel)</label>
-              <textarea id="inpAiPrompt" rows="2" class="w-full bg-studio-900 border border-studio-700 focus:border-violet-500 rounded-xl p-2 text-xs text-slate-100 placeholder-slate-500 outline-none resize-none" placeholder="Ex : Supprimer le pompon à gauche, garder tous les poils du renard et les détails de la baleine..."></textarea>
+              <textarea id="inpAiPrompt" rows="2" class="w-full bg-studio-900 border border-studio-700 focus:border-violet-500 rounded-xl p-2 text-xs text-slate-100 placeholder-slate-500 outline-none resize-none" placeholder="Ex : Supprimer le pompon à gauche, garder tous les traits fins de gravure..."></textarea>
             </div>
 
             <!-- Bouton Lancer / Relancer l'IA -->
@@ -309,23 +318,11 @@
             <!-- Réglage seuil noir IA (affinage) -->
             <div id="aiRefineBox" class="hidden space-y-1 pt-1 border-t border-studio-800">
               <div class="flex justify-between text-xs">
-                <span class="text-slate-300">Seuil traits noirs IA</span>
+                <span class="text-slate-300">Sensibilité traits noirs IA</span>
                 <span id="valAiBlackThresh" class="text-violet-300 font-mono">135</span>
               </div>
               <input type="range" id="rngAiBlackThresh" class="accent-violet" min="40" max="220" step="2" value="135" />
             </div>
-
-            <!-- Clé API Gemini optionnelle (accordéon) -->
-            <details class="group pt-1 border-t border-studio-800">
-              <summary class="text-[11px] text-slate-400 hover:text-slate-200 cursor-pointer flex items-center justify-between list-none">
-                <span>🔑 Clé API Gemini (optionnel hors Canvas)</span>
-                <span class="text-[10px] text-slate-500 group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-              <div class="mt-2 space-y-1.5">
-                <input type="password" id="inpApiKey" class="w-full bg-studio-900 border border-studio-700 focus:border-violet-500 rounded-lg px-2.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 outline-none font-mono" placeholder="Laisser vide en mode automatique" />
-                <p class="text-[10px] text-slate-500 leading-snug">Laissez vide ici (clé injectée automatiquement). Utile uniquement si vous ouvrez ce fichier HTML en local sur votre ordinateur.</p>
-              </div>
-            </details>
           </div>
 
           <!-- ===== PANNEAU MODE LOCAL CLASSIQUE ===== -->
@@ -359,7 +356,7 @@
             <!-- Sensibilité gravure locale -->
             <div class="space-y-1">
               <div class="flex justify-between text-xs">
-                <span class="text-slate-300">Sensibilité gravure locale</span>
+                <span class="text-slate-300">Seuil de gravure local</span>
                 <span id="valEngSens" class="text-amber-400 font-mono">14</span>
               </div>
               <input type="range" id="rngEngSens" class="accent-amber" min="2" max="45" step="1" value="14" />
@@ -392,7 +389,7 @@
           <!-- Renforcement des ponts / Érosion -->
           <div class="space-y-1">
             <div class="flex justify-between text-xs">
-              <span class="text-slate-300">Épaissir ponts / Érosion</span>
+              <span class="text-slate-300">Épaisseur ponts / Érosion</span>
               <span id="valCutMorph" class="text-rose-400 font-mono">0 px</span>
             </div>
             <input type="range" id="rngCutMorph" min="-3" max="3" step="1" value="0" />
@@ -610,6 +607,20 @@
           <span id="loadingText" class="text-xs font-medium text-slate-100 truncate">Traitement en cours…</span>
         </div>
 
+        <!-- Bannière d'erreur API lisible en bas de l'aperçu -->
+        <div id="apiErrorBanner" class="hidden absolute bottom-16 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl bg-rose-950/95 backdrop-blur-md border border-rose-500/70 text-rose-100 rounded-xl px-4 py-3 shadow-2xl z-30 select-text">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0 space-y-1">
+              <div class="flex items-center gap-2 text-xs font-bold text-rose-300">
+                <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                <span id="apiErrorTitle">Erreur proxy /api/gemini</span>
+              </div>
+              <pre id="apiErrorDetails" class="text-[11px] font-mono text-rose-100/90 whitespace-pre-wrap break-words max-h-36 overflow-y-auto leading-relaxed"></pre>
+            </div>
+            <button id="btnCloseApiError" class="p-1 rounded-lg hover:bg-rose-900 text-rose-300 hover:text-white shrink-0 transition" title="Fermer">✕</button>
+          </div>
+        </div>
+
         <!-- Loupe Pipette -->
         <div id="pipettePreview" class="hidden fixed pointer-events-none z-50 px-2.5 py-1.5 rounded-lg bg-studio-900/95 border border-studio-600 shadow-xl flex items-center gap-2 text-xs">
           <span id="pipetteSwatch" class="w-4 h-4 rounded border border-white/40"></span>
@@ -637,7 +648,7 @@
   </div>
 
   <!-- Notifications Toast -->
-  <div id="toastContainer" class="fixed bottom-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 pointer-events-none items-center"></div>
+  <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none items-end"></div>
 
   <!-- ==================== MOTEUR JAVASCRIPT COMPLET ==================== -->
   <script>
@@ -645,8 +656,10 @@
     'use strict';
 
     /* =========================================================================
-       1. ÉTAT GLOBAL DE L'APPLICATION
+       1. CONFIGURATION PROXY & ÉTAT GLOBAL
     ========================================================================= */
+    const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-image';
+
     const state = {
       originalImage: null,
       cropRect: null,
@@ -658,7 +671,6 @@
       engineMode: 'ai',
       aiSubMode: '1pass',          // '1pass' | '2pass'
       aiBusy: false,
-      customApiKey: '',
 
       // Résultats bruts retournés par l'IA (ImageData aux dimensions workW x workH)
       aiResult: {
@@ -780,7 +792,12 @@
       btnResetOffset: $('btnResetOffset'),
       aiRefineBox: $('aiRefineBox'),
       rngAiBlackThresh: $('rngAiBlackThresh'), valAiBlackThresh: $('valAiBlackThresh'),
-      inpApiKey: $('inpApiKey'),
+
+      // Bannière erreur API
+      apiErrorBanner: $('apiErrorBanner'),
+      apiErrorTitle: $('apiErrorTitle'),
+      apiErrorDetails: $('apiErrorDetails'),
+      btnCloseApiError: $('btnCloseApiError'),
 
       // Local
       btnPipetteMode: $('btnPipetteMode'),
@@ -848,17 +865,8 @@
     const workCtx = els.workCanvas.getContext('2d', { willReadFrequently: true });
     const aiCtx = els.aiCanvas.getContext('2d', { willReadFrequently: true });
 
-    // Restauration de la clé API personnalisée éventuelle
-    try {
-      const savedKey = localStorage.getItem('lasersvg_gemini_key') || '';
-      if (savedKey) {
-        state.customApiKey = savedKey;
-        els.inpApiKey.value = savedKey;
-      }
-    } catch (_) {}
-
     /* =========================================================================
-       3. UTILITAIRES UI
+       3. UTILITAIRES UI & BANNIÈRE D'ERREUR API
     ========================================================================= */
     function showToast(message, type = 'info') {
       const styles = {
@@ -868,7 +876,7 @@
         error: 'bg-rose-950/95 border-rose-600 text-rose-100'
       };
       const el = document.createElement('div');
-      el.className = `px-4 py-2.5 rounded-xl border text-xs font-medium shadow-2xl transition-all duration-300 opacity-0 translate-y-2 max-w-[90vw] text-center ${styles[type] || styles.info}`;
+      el.className = `px-4 py-2.5 rounded-xl border text-xs font-medium shadow-2xl transition-all duration-300 opacity-0 translate-y-2 max-w-[90vw] ${styles[type] || styles.info}`;
       el.textContent = message;
       els.toastContainer.appendChild(el);
       requestAnimationFrame(() => el.classList.remove('opacity-0', 'translate-y-2'));
@@ -877,6 +885,18 @@
         setTimeout(() => el.remove(), 300);
       }, 3600);
     }
+
+    function showApiError(title, details) {
+      els.apiErrorTitle.textContent = title;
+      els.apiErrorDetails.textContent = details;
+      els.apiErrorBanner.classList.remove('hidden');
+    }
+
+    function hideApiError() {
+      els.apiErrorBanner.classList.add('hidden');
+    }
+
+    els.btnCloseApiError.addEventListener('click', hideApiError);
 
     function setLoading(active, text = 'Vectorisation en cours…') {
       els.loadingText.textContent = text;
@@ -931,6 +951,7 @@
     function loadSourceImage(img) {
       state.originalImage = img;
       state.cropRect = { x: 0, y: 0, w: img.width, h: img.height };
+      hideApiError();
       resetAIResult();
       setToolMode('pan');
       enableControls(true);
@@ -1126,19 +1147,13 @@
     }
 
     /* =========================================================================
-       5. INTÉGRATION IA GEMINI (gemini-3.1-flash-image)
-          - Mode 1-Passe Alignée (Bleu #0000FF / Blanc #FFFFFF / Noir #000000)
-          - Mode 2-Passes Haute Précision (Masque Découpe + Lineart Gravure)
-          - Backoff exponentiel automatique (1s, 2s, 4s, 8s)
+       5. INTÉGRATION IA VIA PROXY CLOUDFLARE PAGES (/api/gemini)
+          - Aucun appel direct à Google côté client
+          - Aucune clé API requise côté navigateur
+          - Affichage détaillé des erreurs JSON renvoyées par le proxy
     ========================================================================= */
-
-    /**
-     * Appelle l'API Gemini 3.1 Flash Image (image-to-image) avec backoff exponentiel.
-     * La clé API reste vide par défaut pour laisser l'environnement Canvas la fournir.
-     */
-    async function callGeminiImageEdit(promptText, base64Data, mimeType = 'image/jpeg') {
-      const apiKey = state.customApiKey.trim() || '';
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
+    async function callGeminiImageEdit(promptText, base64Data, mimeType = 'image/jpeg', model = DEFAULT_GEMINI_MODEL) {
+      const proxyUrl = `/api/gemini?model=${encodeURIComponent(model)}`;
 
       const payload = {
         contents: [{
@@ -1158,53 +1173,61 @@
         }
       };
 
-      const delays = [1000, 2000, 4000, 8000, 16000];
+      const delays = [1000, 2500, 5000];
       let lastError = null;
 
       for (let attempt = 0; attempt <= delays.length; attempt++) {
         try {
-          const response = await fetch(apiUrl, {
+          const response = await fetch(proxyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
 
+          const rawText = await response.text();
+          let parsedJson = null;
+          try {
+            parsedJson = JSON.parse(rawText);
+          } catch (_) {}
+
           if (!response.ok) {
-            const errText = await response.text().catch(() => '');
-            // Retry uniquement sur throttling / erreurs transitoires
-            if ((response.status === 429 || response.status >= 500) && attempt < delays.length) {
+            // Retry automatique uniquement sur 429 / 502 / 503 / 504
+            if ((response.status === 429 || response.status >= 502) && attempt < delays.length) {
               await new Promise(r => setTimeout(r, delays[attempt]));
               continue;
             }
-            throw new Error(`Erreur API (${response.status})${errText ? ' : ' + errText.slice(0, 140) : ''}`);
+            const formattedErr = parsedJson
+              ? JSON.stringify(parsedJson, null, 2)
+              : (rawText || `Réponse vide (HTTP ${response.status})`);
+            const err = new Error(`HTTP ${response.status}`);
+            err.httpStatus = response.status;
+            err.details = formattedErr;
+            throw err;
           }
 
-          const result = await response.json();
-          const parts = result?.candidates?.[0]?.content?.parts || [];
+          const parts = parsedJson?.candidates?.[0]?.content?.parts || [];
           const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
 
           if (!imgPart) {
             const txtPart = parts.find(p => p.text)?.text || 'Aucune image retournée par le modèle.';
-            throw new Error(txtPart.slice(0, 160));
+            const err = new Error('Aucune image générée');
+            err.details = txtPart;
+            throw err;
           }
 
           return `data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`;
         } catch (err) {
           lastError = err;
-          if (attempt < delays.length && (err.name === 'TypeError' || /429|5\d\d/.test(err.message))) {
+          if (attempt < delays.length && err.name === 'TypeError') {
             await new Promise(r => setTimeout(r, delays[attempt]));
             continue;
           }
           break;
         }
       }
-      throw lastError || new Error('Échec de la requête IA Gemini.');
+      throw lastError || new Error('Échec de la requête vers /api/gemini.');
     }
 
-    /**
-     * Charge une Data URL retournée par Gemini et la redimensionne exactement à (workW, workH)
-     * pour obtenir un ImageData aligné avec le canvas de travail.
-     */
     function dataUrlToAlignedImageData(dataUrl) {
       return new Promise((resolve, reject) => {
         const img = new Image();
@@ -1222,9 +1245,6 @@
       });
     }
 
-    /**
-     * Prépare l'image source (recadrée) en Base64 pour l'envoi à Gemini.
-     */
     function getWorkCanvasBase64() {
       const maxSend = 1024;
       const scale = Math.min(1, maxSend / Math.max(state.workW, state.workH));
@@ -1238,12 +1258,10 @@
       return c.toDataURL('image/jpeg', 0.92).split(',')[1];
     }
 
-    /**
-     * Exécute le traitement IA (1-Passe Alignée ou 2-Passes Haute Précision).
-     */
     async function runAISeparation() {
       if (!state.originalImage || state.aiBusy) return;
 
+      hideApiError();
       state.aiBusy = true;
       els.btnRunAI.disabled = true;
       const userNotes = els.inpAiPrompt.value.trim();
@@ -1283,7 +1301,6 @@ CRITICAL RULES:
           };
           els.ai2PassAlignBox.classList.add('hidden');
         } else {
-          // MODE 2-PASSES HAUTE PRÉCISION
           setLoading(true, '✨ Passe 1/2 : Génération du masque de découpe pur…');
 
           const promptCut = `You are a precision laser-cutting CAD illustrator.
@@ -1316,21 +1333,22 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
           els.ai2PassAlignBox.classList.remove('hidden');
         }
 
-        // Activer l'affichage du calque Rendu IA et les contrôles d'affinage
         els.visAI.disabled = false;
         els.lblVisAI.classList.remove('opacity-50');
         els.btnRunAILabel.textContent = 'Relancer l\'IA';
         els.btnClearAI.classList.remove('hidden');
         els.aiRefineBox.classList.remove('hidden');
 
-        // Basculer automatiquement la vue sur le résultat vectorisé + IA léger
         renderAICanvasPreview();
         setLoading(true, 'Vectorisation du rendu IA…');
         runVectorizationPipeline();
         showToast('Séparation IA terminée et vectorisée !', 'success');
       } catch (err) {
         console.error(err);
-        showToast(err.message || 'Erreur lors de l\'appel IA Gemini.', 'error');
+        const title = err.httpStatus
+          ? `Erreur proxy /api/gemini (HTTP ${err.httpStatus})`
+          : 'Erreur lors de l\'appel /api/gemini';
+        showApiError(title, err.details || err.message || 'Erreur inconnue.');
       } finally {
         state.aiBusy = false;
         els.btnRunAI.disabled = !state.originalImage;
@@ -1338,17 +1356,12 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
       }
     }
 
-    /**
-     * Dessine le rendu IA sur `aiCanvas` pour permettre à l'utilisateur
-     * d'activer/désactiver le calque "Rendu IA" dans le visualiseur.
-     */
     function renderAICanvasPreview() {
       if (!state.aiResult.hasData) return;
       const W = state.workW, H = state.workH;
       if (state.aiResult.mode === '1pass' && state.aiResult.onePassImgData) {
         aiCtx.putImageData(state.aiResult.onePassImgData, 0, 0);
       } else if (state.aiResult.mode === '2pass' && state.aiResult.twoPassCutData && state.aiResult.twoPassEngData) {
-        // Composite visuel 3 couleurs (Bleu = coupe, Blanc = bois, Noir = gravure décalée X/Y)
         const out = aiCtx.createImageData(W, H);
         const od = out.data;
         const cd = state.aiResult.twoPassCutData.data;
@@ -1686,10 +1699,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
       return { lum, sat };
     }
 
-    /**
-     * Pipeline principal unifié : utilise soit les cartes IA (1-Passe ou 2-Passes),
-     * soit le détecteur local classique.
-     */
     function runVectorizationPipeline() {
       if (!state.workImageData) return;
       const W = state.workW, H = state.workH;
@@ -1697,14 +1706,13 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
 
       let cutMask = new Uint8Array(W * H);
       let rawEngraveMask = new Uint8Array(W * H);
-      let hybridGrayData = null; // Uint8Array alpha (0..255) pour le mode Hybride HD
+      let hybridGrayData = null;
 
       if (useAI) {
         els.statSourceBadge.textContent = state.aiResult.mode === '1pass' ? 'IA 1-Passe' : 'IA 2-Passes';
         els.statSourceBadge.className = 'text-violet-300 font-semibold';
 
         if (state.aiResult.mode === '1pass' && state.aiResult.onePassImgData) {
-          // Classification chromatique robuste des 3 couleurs (#0000FF, #FFFFFF, #000000)
           const d = state.aiResult.onePassImgData.data;
           const bThresh = state.aiBlackThresh;
           if (state.engraveMode === 'hybrid') hybridGrayData = new Uint8Array(W * H);
@@ -1712,7 +1720,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
           for (let i = 0, p = 0; i < W * H; i++, p += 4) {
             const r = d[p], g = d[p + 1], b = d[p + 2];
             const maxRG = Math.max(r, g);
-            // Bleu pur ou bleu dominant = découpe / fond (0)
             const isBlue = (b > 95 && (b - maxRG) > 48);
             if (isBlue) {
               cutMask[i] = 0;
@@ -1760,7 +1767,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
           }
         }
       } else {
-        // MODE LOCAL CLASSIQUE
         els.statSourceBadge.textContent = 'Local';
         els.statSourceBadge.className = 'text-sky-300 font-medium';
         const rgba = state.workImageData.data;
@@ -1783,7 +1789,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
         }
       }
 
-      // Morphologie & Despeckle sur le masque de DÉCOUPE
       if (state.cutMorph !== 0) {
         cutMask = applyMorphology(cutMask, W, H, state.cutMorph);
       }
@@ -1792,7 +1797,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
         despeckleMask(cutMask, W, H, 1, Math.max(8, Math.floor(state.cutDespeckle * 0.5)));
       }
 
-      // Extraction des contours de DÉCOUPE (#FF0000)
       let cutPaths = [];
       if (state.enableCut) {
         const rawCutLoops = extractContoursMarchingSquares(cutMask, W, H);
@@ -1807,7 +1811,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
         }
       }
 
-      // Calcul du masque sûr (Marge anti-halo autour des lignes de découpe)
       let safeMatMask = cutMask;
       if (state.enableEngrave && state.engHalo > 0) {
         const distToBg = computeDistanceToZero(cutMask, W, H);
@@ -1816,7 +1819,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
         for (let i = 0; i < W * H; i++) safeMatMask[i] = distToBg[i] > halo ? 1 : 0;
       }
 
-      // Extraction du calque GRAVURE (#000000)
       let engravePaths = [];
       let hybridDataUrl = null;
       const engraveMask = new Uint8Array(W * H);
@@ -1838,7 +1840,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
               if (d) engravePaths.push(d);
             }
           } else {
-            // Hybride HD basé sur la sortie IA nettoyée
             const hCanvas = document.createElement('canvas');
             hCanvas.width = W; hCanvas.height = H;
             const hCtx = hCanvas.getContext('2d');
@@ -1854,7 +1855,6 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
             hybridDataUrl = hCanvas.toDataURL('image/png');
           }
         } else {
-          // Gravure en Mode Local Classique (seuil adaptatif local)
           const { lum, sat } = computeLuminanceAndIntegral(state.workImageData.data, W, H);
           const R = state.engFinesse, sens = state.engSensitivity, sw = W + 1;
 
@@ -1964,7 +1964,7 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
       let engGroup = '';
       if (state.enableEngrave) {
         if (state.engraveMode === 'vector' && engravePaths.length > 0) {
-          engGroup = `  <g id="Gravure" inkscape:groupmode="layer" inkscape:label="Gravure">\n    <path fill="#000000" fill-rule="evenodd" stroke="none" d="${engravePaths.join(' ')}"/>\n  </g>\n`;
+          engGroup = `  <g id="Gravure" fill="#000000" inkscape:groupmode="layer" inkscape:label="Gravure">\n    <path fill="#000000" fill-rule="evenodd" stroke="none" d="${engravePaths.join(' ')}"/>\n  </g>\n`;
         } else if (state.engraveMode === 'hybrid' && hybridDataUrl) {
           engGroup = `  <g id="Gravure" inkscape:groupmode="layer" inkscape:label="Gravure">\n    <image href="${hybridDataUrl}" x="0" y="0" width="${W}" height="${H}" preserveAspectRatio="none"/>\n  </g>\n`;
         }
@@ -1972,7 +1972,7 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
 
       let cutGroup = '';
       if (state.enableCut && cutPaths.length > 0) {
-        cutGroup = `  <g id="Decoupe" inkscape:groupmode="layer" inkscape:label="Decoupe" fill="none" stroke="#FF0000" stroke-width="0.2mm" stroke-linecap="round" stroke-linejoin="round">\n    <path d="${cutPaths.join(' ')}"/>\n  </g>\n`;
+        cutGroup = `  <g id="Decoupe" stroke="#FF0000" fill="none" inkscape:groupmode="layer" inkscape:label="Decoupe" stroke-width="0.2mm" stroke-linecap="round" stroke-linejoin="round">\n    <path d="${cutPaths.join(' ')}"/>\n  </g>\n`;
       }
 
       return `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -2209,7 +2209,6 @@ ${engGroup}${cutGroup}</svg>`;
       els.viewport.setPointerCapture(e.pointerId);
       state.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-      // Pinch-to-zoom à 2 doigts sur mobile
       if (state.activePointers.size === 2) {
         const pts = [...state.activePointers.values()];
         state.pinchStartDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
@@ -2343,7 +2342,6 @@ ${engGroup}${cutGroup}</svg>`;
     els.btnToggleSidebar.addEventListener('click', toggleSidebar);
     els.sidebarOverlay.addEventListener('click', toggleSidebar);
 
-    // Import & Drag-and-Drop
     [els.btnTopImport, els.btnEmptyImport, els.dropZone].forEach(el => el.addEventListener('click', () => els.fileInput.click()));
     els.fileInput.addEventListener('change', e => {
       if (e.target.files[0]) handleFile(e.target.files[0]);
@@ -2365,7 +2363,6 @@ ${engGroup}${cutGroup}</svg>`;
     els.btnLoadDemo.addEventListener('click', loadDemoImage);
     els.btnEmptyDemo.addEventListener('click', loadDemoImage);
 
-    // Crop
     els.btnCropMode.addEventListener('click', () => {
       setToolMode(state.toolMode === 'crop' ? 'pan' : 'crop');
       if (window.innerWidth < 1024 && state.toolMode === 'crop') toggleSidebar();
@@ -2384,7 +2381,6 @@ ${engGroup}${cutGroup}</svg>`;
       showToast('Recadrage réinitialisé.', 'info');
     });
 
-    // Bascule Onglets Mode IA vs Mode Local
     function setEngineMode(mode) {
       state.engineMode = mode;
       const isAI = mode === 'ai';
@@ -2404,7 +2400,6 @@ ${engGroup}${cutGroup}</svg>`;
     els.tabModeAI.addEventListener('click', () => setEngineMode('ai'));
     els.tabModeLocal.addEventListener('click', () => setEngineMode('local'));
 
-    // Sous-modes IA (1-Passe vs 2-Passes)
     function setAiSubMode(sub) {
       state.aiSubMode = sub;
       const is1 = sub === '1pass';
@@ -2429,7 +2424,6 @@ ${engGroup}${cutGroup}</svg>`;
       showToast('Rendu IA effacé (retour à l\'analyse locale).', 'info');
     });
 
-    // Recalage X/Y 2-Passes & seuil noir IA
     els.rngOffsetX.addEventListener('input', e => {
       state.aiOffsetX = Number(e.target.value);
       els.valOffsetX.textContent = `${state.aiOffsetX} px`;
@@ -2455,12 +2449,7 @@ ${engGroup}${cutGroup}</svg>`;
       renderAICanvasPreview();
       scheduleProcess(100);
     });
-    els.inpApiKey.addEventListener('input', e => {
-      state.customApiKey = e.target.value;
-      try { localStorage.setItem('lasersvg_gemini_key', state.customApiKey); } catch (_) {}
-    });
 
-    // Contrôles Mode Local
     els.btnPipetteMode.addEventListener('click', () => {
       setToolMode(state.toolMode === 'pipette' ? 'pan' : 'pipette');
       if (window.innerWidth < 1024 && state.toolMode === 'pipette') toggleSidebar();
@@ -2482,7 +2471,6 @@ ${engGroup}${cutGroup}</svg>`;
       scheduleProcess();
     });
 
-    // Contrôles Vectorisation
     els.chkEnableCut.addEventListener('change', e => { state.enableCut = e.target.checked; scheduleProcess(50); });
     els.rngCutMorph.addEventListener('input', e => {
       state.cutMorph = Number(e.target.value);
@@ -2529,7 +2517,6 @@ ${engGroup}${cutGroup}</svg>`;
       scheduleProcess();
     });
 
-    // Visibilité calques & Fond
     els.visOriginal.addEventListener('change', e => {
       state.visOriginal = e.target.checked;
       els.workCanvas.style.opacity = state.visOriginal ? state.origOpacity : 0;
@@ -2558,7 +2545,6 @@ ${engGroup}${cutGroup}</svg>`;
       });
     });
 
-    // Zoom
     els.btnZoomIn.addEventListener('click', () => {
       const r = els.viewport.getBoundingClientRect();
       zoomAt(1.25, r.left + r.width / 2, r.top + r.height / 2);
@@ -2569,7 +2555,6 @@ ${engGroup}${cutGroup}</svg>`;
     });
     els.btnZoomFit.addEventListener('click', fitToViewport);
 
-    // Dimensions & Export
     els.inpFileName.addEventListener('input', e => { state.fileName = e.target.value; });
     els.inpWidthMm.addEventListener('input', e => {
       const v = parseFloat(e.target.value);
