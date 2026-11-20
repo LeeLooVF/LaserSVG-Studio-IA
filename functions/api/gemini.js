@@ -22,14 +22,20 @@ export async function onRequestPost({ request, env }) {
     }
 
     const body = await request.text();
-    const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+    const isVertexKey = apiKey.startsWith("AQ.");
+
+    const googleUrl = isVertexKey
+      ? `https://aiplatform.googleapis.com/v1/publishers/google/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`
+      : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+    const headers = { "Content-Type": "application/json" };
+    if (!isVertexKey) {
+      headers["x-goog-api-key"] = apiKey;
+    }
 
     const upstream = await fetch(googleUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey
-      },
+      headers,
       body
     });
 
