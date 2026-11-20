@@ -122,6 +122,56 @@
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
+
+    /* Grand panneau d'erreur centré (style modale large) */
+    .error-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 7, 12, 0.65);
+      backdrop-filter: blur(3px);
+      z-index: 9998;
+    }
+    .error-modal-backdrop.hidden {
+      display: none;
+    }
+    .error-modal-large {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(720px, 88vw);
+      height: min(78vh, 760px);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      background: rgba(69, 10, 15, 0.96);
+      border: 2px solid #ef4444;
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+    }
+    .error-modal-large.hidden {
+      display: none;
+    }
+    .error-modal-large pre {
+      flex: 1;
+      overflow: auto;
+      margin-top: 14px;
+      margin-bottom: 0;
+      padding: 14px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      border-radius: 8px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #fee2e2;
+      white-space: pre-wrap;
+      word-break: break-word;
+      user-select: text;
+      -webkit-user-select: text;
+    }
   </style>
 </head>
 <body class="flex flex-col h-screen w-screen select-none">
@@ -249,7 +299,18 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 Proxy serveur /api/gemini actif
               </span>
-              <span class="text-[10px] font-mono text-emerald-400/80">2.5-flash</span>
+            </div>
+
+            <!-- Sélecteur de modèle Gemini -->
+            <div class="space-y-1.5">
+              <label for="selectAiModel" class="text-[11px] font-medium text-slate-400">Modèle Gemini</label>
+              <select id="selectAiModel" class="w-full bg-studio-900 border border-studio-700 focus:border-violet-500 rounded-xl px-2.5 py-1.5 text-xs text-slate-100 outline-none font-mono">
+                <option value="gemini-2.5-flash-image" selected>gemini-2.5-flash-image</option>
+                <option value="gemini-2.0-flash-exp-image-generation">gemini-2.0-flash-exp-image-generation</option>
+                <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+                <option value="custom">Personnalisé…</option>
+              </select>
+              <input type="text" id="inpCustomModel" class="hidden w-full bg-studio-900 border border-violet-500/60 focus:border-violet-400 rounded-xl px-2.5 py-1.5 text-xs text-white font-mono placeholder-slate-500 outline-none" placeholder="Ex : gemini-2.5-flash-image" />
             </div>
 
             <!-- Choix 1-Passe vs 2-Passes -->
@@ -373,7 +434,7 @@
           </div>
         </section>
 
-        <!-- SECTION 3 : RÉGLAGES VECTORISATION (DÉCOUPE & GRAVURE) -->
+        <!-- SECTION 3 & 4 : RÉGLAGES VECTORISATION (DÉCOUPE & GRAVURE) -->
         <section class="bg-studio-850 border border-studio-800 rounded-xl p-3 space-y-3">
           <div class="flex items-center justify-between">
             <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
@@ -465,7 +526,7 @@
         <section class="bg-studio-850 border border-studio-800 rounded-xl p-3 space-y-3">
           <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
             <span class="w-1.5 h-4 rounded-full bg-emerald-400"></span>
-            5. Dimensions &amp; Export .ZIP
+            5. Dimensions (mm) &amp; Export
           </h2>
 
           <div class="space-y-1">
@@ -607,20 +668,6 @@
           <span id="loadingText" class="text-xs font-medium text-slate-100 truncate">Traitement en cours…</span>
         </div>
 
-        <!-- Bannière d'erreur API lisible en bas de l'aperçu -->
-        <div id="apiErrorBanner" class="hidden absolute bottom-16 left-1/2 -translate-x-1/2 w-[92%] max-w-2xl bg-rose-950/95 backdrop-blur-md border border-rose-500/70 text-rose-100 rounded-xl px-4 py-3 shadow-2xl z-30 select-text">
-          <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0 space-y-1">
-              <div class="flex items-center gap-2 text-xs font-bold text-rose-300">
-                <svg class="w-4 h-4 shrink-0 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
-                <span id="apiErrorTitle">Erreur proxy /api/gemini</span>
-              </div>
-              <pre id="apiErrorDetails" class="text-[11px] font-mono text-rose-100/90 whitespace-pre-wrap break-words max-h-36 overflow-y-auto leading-relaxed"></pre>
-            </div>
-            <button id="btnCloseApiError" class="p-1 rounded-lg hover:bg-rose-900 text-rose-300 hover:text-white shrink-0 transition" title="Fermer">✕</button>
-          </div>
-        </div>
-
         <!-- Loupe Pipette -->
         <div id="pipettePreview" class="hidden fixed pointer-events-none z-50 px-2.5 py-1.5 rounded-lg bg-studio-900/95 border border-studio-600 shadow-xl flex items-center gap-2 text-xs">
           <span id="pipetteSwatch" class="w-4 h-4 rounded border border-white/40"></span>
@@ -647,6 +694,36 @@
     </main>
   </div>
 
+  <!-- ==================== GRAND PANNEAU D'ERREUR CENTRÉ (MODALE LARGE) ==================== -->
+  <div id="apiErrorBackdrop" class="error-modal-backdrop hidden"></div>
+  <div id="apiErrorModal" class="error-modal-large hidden" role="dialog" aria-modal="true" aria-labelledby="apiErrorTitle">
+    <div class="flex items-center justify-between gap-3 border-b border-red-500/35 pb-3 shrink-0">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-8 h-8 rounded-lg bg-red-500/20 border border-red-500/40 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+        </div>
+        <div class="min-w-0">
+          <h3 id="apiErrorTitle" class="text-sm sm:text-base font-bold text-red-200 truncate">Erreur proxy /api/gemini</h3>
+          <p class="text-[11px] text-red-300/75">Réponse détaillée renvoyée par le serveur (Échap pour fermer)</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 shrink-0">
+        <button id="btnCopyApiError" class="px-3 py-1.5 rounded-lg bg-red-800/90 hover:bg-red-700 border border-red-500/40 text-xs font-semibold text-white flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+          <span id="btnCopyApiErrorLabel">Copier</span>
+        </button>
+        <button id="btnCloseApiError" class="w-8 h-8 rounded-lg bg-red-950/70 hover:bg-red-900 border border-red-500/30 text-red-200 hover:text-white flex items-center justify-center text-base font-bold transition" title="Fermer (Échap)">
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <pre id="apiErrorDetails"></pre>
+  </div>
+
   <!-- Notifications Toast -->
   <div id="toastContainer" class="fixed top-16 right-4 z-50 flex flex-col gap-2 pointer-events-none items-end"></div>
 
@@ -658,8 +735,6 @@
     /* =========================================================================
        1. CONFIGURATION PROXY & ÉTAT GLOBAL
     ========================================================================= */
-    const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash-image';
-
     const state = {
       originalImage: null,
       cropRect: null,
@@ -670,6 +745,7 @@
       // Mode actif : 'ai' | 'local'
       engineMode: 'ai',
       aiSubMode: '1pass',          // '1pass' | '2pass'
+      aiModel: 'gemini-2.5-flash-image',
       aiBusy: false,
 
       // Résultats bruts retournés par l'IA (ImageData aux dimensions workW x workH)
@@ -779,6 +855,8 @@
       panelModeLocal: $('panelModeLocal'),
 
       // IA
+      selectAiModel: $('selectAiModel'),
+      inpCustomModel: $('inpCustomModel'),
       btnAi1Pass: $('btnAi1Pass'),
       btnAi2Pass: $('btnAi2Pass'),
       ai1PassHint: $('ai1PassHint'),
@@ -793,10 +871,13 @@
       aiRefineBox: $('aiRefineBox'),
       rngAiBlackThresh: $('rngAiBlackThresh'), valAiBlackThresh: $('valAiBlackThresh'),
 
-      // Bannière erreur API
-      apiErrorBanner: $('apiErrorBanner'),
+      // Modale d'erreur API large
+      apiErrorBackdrop: $('apiErrorBackdrop'),
+      apiErrorModal: $('apiErrorModal'),
       apiErrorTitle: $('apiErrorTitle'),
       apiErrorDetails: $('apiErrorDetails'),
+      btnCopyApiError: $('btnCopyApiError'),
+      btnCopyApiErrorLabel: $('btnCopyApiErrorLabel'),
       btnCloseApiError: $('btnCloseApiError'),
 
       // Local
@@ -866,7 +947,7 @@
     const aiCtx = els.aiCanvas.getContext('2d', { willReadFrequently: true });
 
     /* =========================================================================
-       3. UTILITAIRES UI & BANNIÈRE D'ERREUR API
+       3. UTILITAIRES UI & GRAND PANNEAU D'ERREUR API
     ========================================================================= */
     function showToast(message, type = 'info') {
       const styles = {
@@ -889,14 +970,49 @@
     function showApiError(title, details) {
       els.apiErrorTitle.textContent = title;
       els.apiErrorDetails.textContent = details;
-      els.apiErrorBanner.classList.remove('hidden');
+      els.apiErrorBackdrop.classList.remove('hidden');
+      els.apiErrorModal.classList.remove('hidden');
     }
 
     function hideApiError() {
-      els.apiErrorBanner.classList.add('hidden');
+      els.apiErrorBackdrop.classList.add('hidden');
+      els.apiErrorModal.classList.add('hidden');
     }
 
+    function copyTextFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      let ok = false;
+      try {
+        ok = document.execCommand('copy');
+      } catch (_) {}
+      ta.remove();
+      return ok;
+    }
+
+    let copyResetTimer = null;
+    els.btnCopyApiError.addEventListener('click', () => {
+      const text = els.apiErrorDetails.textContent || '';
+      if (!text) return;
+      const copied = copyTextFallback(text);
+      if (copied) {
+        els.btnCopyApiErrorLabel.textContent = 'Copié !';
+        clearTimeout(copyResetTimer);
+        copyResetTimer = setTimeout(() => {
+          els.btnCopyApiErrorLabel.textContent = 'Copier';
+        }, 2000);
+      } else {
+        showToast('Sélectionnez le texte manuellement pour le copier.', 'warn');
+      }
+    });
+
     els.btnCloseApiError.addEventListener('click', hideApiError);
+    els.apiErrorBackdrop.addEventListener('click', hideApiError);
 
     function setLoading(active, text = 'Vectorisation en cours…') {
       els.loadingText.textContent = text;
@@ -905,6 +1021,14 @@
 
     function rgbToHex(r, g, b) {
       return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function getActiveModelName() {
+      if (els.selectAiModel.value === 'custom') {
+        const custom = els.inpCustomModel.value.trim();
+        return custom || 'gemini-2.5-flash-image';
+      }
+      return els.selectAiModel.value || 'gemini-2.5-flash-image';
     }
 
     let processTimer = null;
@@ -1147,13 +1271,13 @@
     }
 
     /* =========================================================================
-       5. INTÉGRATION IA VIA PROXY CLOUDFLARE PAGES (/api/gemini)
-          - Aucun appel direct à Google côté client
-          - Aucune clé API requise côté navigateur
-          - Affichage détaillé des erreurs JSON renvoyées par le proxy
+       5. INTÉGRATION IA EXCLUSIVEMENT VIA PROXY SERVEUR (/api/gemini)
+          - Aucune clé API requise côté client
+          - Affichage des erreurs complètes dans le grand panneau centré
     ========================================================================= */
-    async function callGeminiImageEdit(promptText, base64Data, mimeType = 'image/jpeg', model = DEFAULT_GEMINI_MODEL) {
-      const proxyUrl = `/api/gemini?model=${encodeURIComponent(model)}`;
+    async function callGeminiImageEdit(promptText, base64Data, mimeType = 'image/jpeg') {
+      const model = getActiveModelName();
+      const proxyUrl = '/api/gemini?model=' + encodeURIComponent(model);
 
       const payload = {
         contents: [{
@@ -1173,59 +1297,41 @@
         }
       };
 
-      const delays = [1000, 2500, 5000];
-      let lastError = null;
+      const response = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      for (let attempt = 0; attempt <= delays.length; attempt++) {
-        try {
-          const response = await fetch(proxyUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
+      const rawText = await response.text();
+      let parsedJson = null;
+      try {
+        parsedJson = JSON.parse(rawText);
+      } catch (_) {}
 
-          const rawText = await response.text();
-          let parsedJson = null;
-          try {
-            parsedJson = JSON.parse(rawText);
-          } catch (_) {}
-
-          if (!response.ok) {
-            // Retry automatique uniquement sur 429 / 502 / 503 / 504
-            if ((response.status === 429 || response.status >= 502) && attempt < delays.length) {
-              await new Promise(r => setTimeout(r, delays[attempt]));
-              continue;
-            }
-            const formattedErr = parsedJson
-              ? JSON.stringify(parsedJson, null, 2)
-              : (rawText || `Réponse vide (HTTP ${response.status})`);
-            const err = new Error(`HTTP ${response.status}`);
-            err.httpStatus = response.status;
-            err.details = formattedErr;
-            throw err;
-          }
-
-          const parts = parsedJson?.candidates?.[0]?.content?.parts || [];
-          const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
-
-          if (!imgPart) {
-            const txtPart = parts.find(p => p.text)?.text || 'Aucune image retournée par le modèle.';
-            const err = new Error('Aucune image générée');
-            err.details = txtPart;
-            throw err;
-          }
-
-          return `data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`;
-        } catch (err) {
-          lastError = err;
-          if (attempt < delays.length && err.name === 'TypeError') {
-            await new Promise(r => setTimeout(r, delays[attempt]));
-            continue;
-          }
-          break;
-        }
+      if (!response.ok) {
+        const formattedErr = parsedJson
+          ? JSON.stringify(parsedJson, null, 2)
+          : (rawText || `Réponse vide du proxy (HTTP ${response.status})`);
+        const err = new Error(`HTTP ${response.status}`);
+        err.httpStatus = response.status;
+        err.details = formattedErr;
+        throw err;
       }
-      throw lastError || new Error('Échec de la requête vers /api/gemini.');
+
+      const parts = parsedJson?.candidates?.[0]?.content?.parts || [];
+      const imgPart = parts.find(p => p.inlineData && p.inlineData.data);
+
+      if (!imgPart) {
+        const fallbackMsg = parsedJson
+          ? JSON.stringify(parsedJson, null, 2)
+          : (rawText || 'Aucune image retournée par le modèle.');
+        const err = new Error('Aucune image générée');
+        err.details = fallbackMsg;
+        throw err;
+      }
+
+      return `data:${imgPart.inlineData.mimeType || 'image/png'};base64,${imgPart.inlineData.data}`;
     }
 
     function dataUrlToAlignedImageData(dataUrl) {
@@ -1347,7 +1453,7 @@ Do NOT fill the background or cutout holes with black. Remove all 3D shadows, wo
         console.error(err);
         const title = err.httpStatus
           ? `Erreur proxy /api/gemini (HTTP ${err.httpStatus})`
-          : 'Erreur lors de l\'appel /api/gemini';
+          : 'Erreur proxy /api/gemini';
         showApiError(title, err.details || err.message || 'Erreur inconnue.');
       } finally {
         state.aiBusy = false;
@@ -2363,6 +2469,18 @@ ${engGroup}${cutGroup}</svg>`;
     els.btnLoadDemo.addEventListener('click', loadDemoImage);
     els.btnEmptyDemo.addEventListener('click', loadDemoImage);
 
+    // Sélecteur de modèle IA
+    els.selectAiModel.addEventListener('change', e => {
+      const isCustom = e.target.value === 'custom';
+      els.inpCustomModel.classList.toggle('hidden', !isCustom);
+      if (isCustom) els.inpCustomModel.focus();
+      state.aiModel = getActiveModelName();
+    });
+    els.inpCustomModel.addEventListener('input', () => {
+      state.aiModel = getActiveModelName();
+    });
+
+    // Crop
     els.btnCropMode.addEventListener('click', () => {
       setToolMode(state.toolMode === 'crop' ? 'pan' : 'crop');
       if (window.innerWidth < 1024 && state.toolMode === 'crop') toggleSidebar();
@@ -2592,7 +2710,15 @@ ${engGroup}${cutGroup}</svg>`;
     els.btnExportZipTop.addEventListener('click', exportZipPack);
     els.btnExportSvg.addEventListener('click', exportSvgOnly);
 
-    window.addEventListener('keydown', e => { if (e.key === 'Escape' && state.toolMode !== 'pan') setToolMode('pan'); });
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (!els.apiErrorModal.classList.contains('hidden')) {
+          hideApiError();
+        } else if (state.toolMode !== 'pan') {
+          setToolMode('pan');
+        }
+      }
+    });
     window.addEventListener('resize', () => { if (state.originalImage) fitToViewport(); });
   })();
   </script>
