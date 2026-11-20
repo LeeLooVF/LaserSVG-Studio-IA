@@ -1,5 +1,3 @@
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 module.exports = async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
 
@@ -25,12 +23,16 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // Route POST : appel au modèle Gemini avec retry automatique sur 503
+  // Route POST : 1 seul appel propre avec timeout de sécurité à 50s
   if (req.method === "POST") {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000);
+
     try {
       const model = (req.query && req.query.model) || "gemini-3.8-flash";
 
       if (!/^[a-zA-Z0-9._-]+$/.test(model)) {
+        clearTimeout(timeoutId);
         return res.status(400).json({
           error: { message: "Nom de modèle invalide." }
         });
@@ -39,36 +41,29 @@ module.exports = async function handler(req, res) {
       const body = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
       const googleUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
-      const maxAttempts = 3;
-      let upstream;
-      let data = "";
+      const upstream = await fetch(googleUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body,
+        signal: controller.signal
+      });
 
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        upstream = await fetch(googleUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-goog-api-key": apiKey
-          },
-          body
-        });
-
-        data = await upstream.text();
-
-        // Si succès ou erreur autre que 503, on s'arrête immédiatement
-        if (upstream.status !== 503 || attempt === maxAttempts) {
-          break;
-        }
-
-        // Attente avant la tentative suivante (2,5s puis 5s)
-        await sleep(attempt * 2500);
-      }
-
+      clearTimeout(timeoutId);
+      const data = await upstream.text();
       res.setHeader("Content-Type", "application/json");
       return res.status(upstream.status).send(data);
     } catch (err) {
-      return res.status(500).json({
-        error: { message: err.message || "Erreur interne du proxy Gemini US." }
+      clearTimeout(timeoutId);
+      const isTimeout = err.name === "AbortError";
+      return res.status(isTimeout ? 504 : 500).json({
+        error: {
+          message: isTimeout
+            ? "Google Gemini a mis plus de 50 secondes à répondre (serveur saturé). Réessayez dans un instant."
+            : (err.message || "Erreur interne du proxy Gemini US.")
+        }
       });
     }
   }
